@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1470981969 source:/home/wicho/MIA-201123045/Proyecto_archivos/main.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<time.h>
+

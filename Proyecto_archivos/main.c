@@ -876,9 +876,11 @@ void Funcionalidad(char* token){
                     token= malloc(200);
                     token = strtok(name1, s);
                     int contador=0;
+                    dsk[0]=malloc(200);
+                    dsk[1]=malloc(200);
+                    dsk[1]="kf";
                     while( token != NULL )
                     {
-                        dsk[contador]=malloc(200);
                         strcpy(dsk[contador],token);
                         contador=contador+1;
                         token = strtok(NULL, s);
@@ -908,21 +910,25 @@ void Funcionalidad(char* token){
         else if (strcasecmp(token,"rmdisk")==0){
             printf("Entro rmdisk");
             char *ruta;
+            int pathc=0;
             ruta=malloc(sizeof(200));
-            if(lista[1]!=NULL){
-                SplitIgual(lista[1]);
+            int cont =1;
+            while(lista[cont]!=NULL){
+                SplitIgual(lista[cont]);
+
                 if(strcasecmp(sublista[0],"-path")==0){
                     strcpy(ruta,sublista[1]);
-                    printf("ESTO HAY EN RUTA %s\n",ruta);
-                    bandera=1;
+                    printf("ESTO HAY EN PATH: %s\n",ruta);
+                    SplitComilla(ruta);
+                    strcpy(ruta,sinComillas);
+                    printf("ESTO HAY EN PATH: %s\n",sinComillas);
+                    pathc=1;
                 }
-                else{
-                    printf("SE ESPERABA -PATH\n");
-                    bandera=0;
-                }
+
+                cont = cont+1;
             }
-            printf("BANDERA: %d\n",bandera);
-            if(bandera==1){
+
+            if(pathc==1){
                 printf("Desea eliminar el archivo: %s(S/N)\n",ruta);
                 leecad(compara,2);
                 if(strcasecmp(compara, "N") == 0){
@@ -935,6 +941,8 @@ void Funcionalidad(char* token){
                     printf("La opcion que ingreso es incorrecta\n");
 
                 }
+            }else{
+                printf("Falta uno o mas parametros obligatorios \n");
             }
        }
 
