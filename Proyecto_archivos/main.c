@@ -39,11 +39,13 @@ struct EBR{
 char entrada[500];
 char *lista[8];
 char *sublista[2];
+char *sinComillas;
 struct particionMontada Pmontadas[25];
 int otro;
 int bandera=1;
 int KB=1024;
 char path[200];
+char name[50];
 char compara[4];
 int f1, f2;
 int signature = 0;
@@ -105,8 +107,26 @@ void SplitEspacio(char* entry){
     }
 }
 
+void SplitComilla(char* entry){
+    const char s[2] = "\"";
+    char *token;
+    int x=0;
+    token= malloc(sizeof(char));
+    token = strtok(entry, s);
+    int contador=0;
+    while(token != NULL)
+    {
+        sinComillas=malloc(200);
+        strcpy(sinComillas,token);
+        printf("ESTO HAY EN SIN %d\n",sinComillas);
+        contador=contador+1;
+        token = strtok(NULL, s);
+    }
+
+}
+
 void SplitIgual(char* igual){
-    const char s[2] = ":";
+    const char s[2] = "::";
     char *token;
     token= malloc(200);
     token = strtok(igual, s);
@@ -790,13 +810,15 @@ void Funcionalidad(char* token){
             printf("Entro mkdisk\n");
             int size=0;
             char unit[1];
-            int tam=1024;
+            int tam=KB*KB;
+            int sizec=0;
+            int pathc=0;
+            int namec=0;
             int cont = 1;
             while (lista[cont]!=NULL){
                 SplitIgual(lista[cont]);
 
                 if(strcasecmp(sublista[0],"-size")==0){
-                    printf("Viene -size");
                     if(atoi(sublista[1])>=0){
                         size=atoi(sublista[1]);
                         printf("ESTO HAY EN TAMAÑO %d\n",size);
@@ -806,39 +828,78 @@ void Funcionalidad(char* token){
                         printf("El tamaño que ingreso es invalido\n");
                         bandera=0;
                     }
+                    sizec=1;
                 }
 
-                if(strcasecmp(sublista[0],"-unit")==0){
+                if(strcasecmp(sublista[0],"+unit")==0){
                     strcpy(unit,sublista[1]);
                     printf("ESTO HAY EN UNIT: %s\n",unit);
                     printf("ESTO HAY EN SUBLISTA: %s\n",sublista[0]);
                     if(strcasecmp(unit,"K")==0){
                         printf("VIENE K");
+                        tam=KB;
                         printf("Esto tiene otro %d\n",size);
                         printf("Esto tiene K %d\n",tam);
 
                     }
                     else if(strcasecmp(unit,"M")==0){
                         printf("VIENE M");
-                        tam=tam*KB;
                         printf("Esto tiene size %d\n",size);
                         printf("Esto tiene M %d\n",tam);
+                    }else{
+                        printf("unidad erronea \n");
                     }
                 }
 
                 if(strcasecmp(sublista[0],"-path")==0){
                     strcpy(path,sublista[1]);
                     printf("ESTO HAY EN PATH: %s\n",path);
+                    SplitComilla(path);
+                    strcpy(path,sinComillas);
+                    printf("ESTO HAY EN PATH: %s\n",sinComillas);
+                    strcat(path,name);
+                    pathc=1;
                 }
+
+                if(strcasecmp(sublista[0],"-name")==0){
+                    strcpy(name,sublista[1]);
+                    printf("ESTO HAY EN NAME: %s\n",name);
+                    SplitComilla(name);
+                    strcpy(name,sinComillas);
+                    printf("ESTO HAY EN NAME: %s\n",name);
+                    strcat(path,name);
+                    char name1[50];
+                    strcpy(name1,name);
+                    char *dsk[2];
+                    const char s[2] = ".";
+                    char *token;
+                    token= malloc(200);
+                    token = strtok(name1, s);
+                    int contador=0;
+                    while( token != NULL )
+                    {
+                        dsk[contador]=malloc(200);
+                        strcpy(dsk[contador],token);
+                        contador=contador+1;
+                        token = strtok(NULL, s);
+                    }
+                    if(strcasecmp(dsk[1],"dsk")==0){
+                        namec=1;
+                    }else{
+                        printf("Falta extension .dsk \n");
+                    }
+                }
+
                 cont = cont+1;
             }
             tam=tam*otro;
             printf("Esto tiene tam %d\n",tam);
             printf("ESTO HAY EN PATH: %s\n",path);
-            printf("Esto tiene bandera %d\n",bandera);
 
-            if(bandera==1){
+            if(sizec==1 && pathc==1 && namec == 1){
                 CrearDisco(tam);
+            }else{
+                printf("Falta uno o mas parametros obligatorios \n");
             }
 
         }
