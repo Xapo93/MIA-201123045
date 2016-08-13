@@ -871,8 +871,8 @@ void Funcionalidad(char* token){
             int tam=KB*KB;
             int sizec=0;
             int pathc=0;
-            int namec=0;
             int cont = 1;
+            int namec=0;
             strcpy(name,"");
             strcpy(path,"");
             while (lista[cont]!=NULL){
