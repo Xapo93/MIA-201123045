@@ -661,6 +661,7 @@ void Desmontar(char *id){
 }
 
 void Reportes(char *name,char *ruta, char *id){
+    printf("RUTA: %s \n",ruta);
     FILE *reporte = fopen(ruta,"w+");
     if(reporte!=NULL){
         int con = 0;
@@ -872,8 +873,8 @@ void Funcionalidad(char* token){
             int pathc=0;
             int namec=0;
             int cont = 1;
-            strcpy(path,"");
             strcpy(name,"");
+            strcpy(path,"");
             while (lista[cont]!=NULL){
                 SplitIgual(lista[cont]);
 
