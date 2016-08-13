@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/stat.h>
 
 struct particion{
     char status;
@@ -37,6 +38,7 @@ struct EBR{
 }EBR;
 
 char entrada[500];
+char e2[500];
 char *lista[8];
 char *sublista[2];
 char *sinComillas;
@@ -50,10 +52,17 @@ char compara[4];
 int f1, f2;
 int signature = 0;
 int letraab=97;
+char ultimo;
 
 void empezar(){
     printf("Comando: ");
     leecad(entrada,400);
+    if(ultimo=='/'){
+        entrada[strlen(entrada)-1]='\0';
+        printf("cont comando:");
+        leecad(e2,400);
+        strcat(entrada,e2);
+    }
     printf("ENTRADA: %s\n",entrada);
     SplitEspacio(entrada);
     strcpy(entrada,"");
@@ -74,6 +83,7 @@ void leecad(char *cad, int n) {
     }
     for (; i < n-1 && (c=getchar())!=EOF && c!='\n'; i++)
        cad[i] = c;
+    ultimo = cad[i-1];
     cad[i] = '\0';
     if (c != '\n' && c != EOF)
         while ((c = getchar()) != '\n' && c != EOF);
@@ -156,6 +166,7 @@ void CrearDisco(int tam){
     }
     nuevoDisco.fecha= time(NULL);
     printf("sig:%i tam:%i fecha:%ld \n",signature,tam,nuevoDisco.fecha);
+
     FILE *disco = fopen(path,"w+");
     if(disco!=NULL){
         int aux = tam/1024;
@@ -902,16 +913,35 @@ void Funcionalidad(char* token){
                 if(strcasecmp(sublista[0],"-path")==0){
                     strcpy(path,sublista[1]);
                     printf("ESTO HAY EN PATH: %s\n",path);
+                    if(path[strlen(path)-1]!='"'){
+                        strcat(path," ");
+                        strcat(path,lista[cont+1]);
+                    }
                     SplitComilla(path);
                     strcpy(path,sinComillas);
+                    sinComillas[strlen(sinComillas)-1]='\0';
                     printf("ESTO HAY EN PATH: %s\n",sinComillas);
+                    struct stat st = {0};
+                    printf("Verificando si existe el directorio...\n");
+                    if (stat(sinComillas, &st) == -1) {
+                        printf("Creando el directorio...\n");
+                        if( mkdir(path, 0700) != 0 ){
+                          printf("ERROR 0x01 0x0F 0x04.\nError desconocido en la creación del directorio.\n");
+                          return 0;
+                        }
+                        printf("dir creado\n");
+                    }
                     strcat(path,name);
                     pathc=1;
                 }
-
+                printf("ciclo: %s\n", sublista[0]);
                 if(strcasecmp(sublista[0],"-name")==0){
                     strcpy(name,sublista[1]);
                     printf("ESTO HAY EN NAME: %s\n",name);
+                    if(name[strlen(name)-1]!='"'){
+                        strcat(name," ");
+                        strcat(name,lista[cont+1]);
+                    }
                     SplitComilla(name);
                     strcpy(name,sinComillas);
                     printf("ESTO HAY EN NAME: %s\n",name);
@@ -967,6 +997,10 @@ void Funcionalidad(char* token){
                 if(strcasecmp(sublista[0],"-path")==0){
                     strcpy(ruta,sublista[1]);
                     printf("ESTO HAY EN PATH: %s\n",ruta);
+                    if(ruta[strlen(ruta)-1]!='"'){
+                        strcat(ruta," ");
+                        strcat(ruta,lista[cont+1]);
+                    }
                     SplitComilla(ruta);
                     strcpy(ruta,sinComillas);
                     printf("ESTO HAY EN PATH: %s\n",sinComillas);
@@ -1050,6 +1084,10 @@ void Funcionalidad(char* token){
                     ruta=malloc(200);
                     strcpy(ruta,sublista[1]);
                     printf("ESTO HAY EN PATH: %s\n",ruta);
+                    if(ruta[strlen(ruta)-1]!='"'){
+                        strcat(ruta," ");
+                        strcat(ruta,lista[cont+1]);
+                    }
                     SplitComilla(ruta);
                     strcpy(ruta,sinComillas);
                     printf("ESTO HAY EN PATH: %s\n",ruta);
@@ -1095,6 +1133,10 @@ void Funcionalidad(char* token){
                     printf("Entro -name");
                     name=malloc(50);
                     strcpy(name,sublista[1]);
+                    if(name[strlen(name)-1]!='"'){
+                        strcat(name," ");
+                        strcat(name,lista[cont+1]);
+                    }
                     SplitComilla(name);
                     strcpy(name,sinComillas);
                     printf("ESTO HAY EN PATH: %s\n",name);
@@ -1169,34 +1211,46 @@ void Funcionalidad(char* token){
             char *nombre;
             char *ruta;
             bandera = 2;
-            if(lista[1]!=NULL){
-                SplitIgual(lista[1]);
-                if(strcasecmp(sublista[0],"-path")==0){
-                    ruta=malloc(200);
-                    strcpy(ruta,sublista[1]);
-                    SplitComilla(ruta);
-                    strcpy(ruta,sinComillas);
-                    printf("ESTO HAY EN PATH: %s\n",ruta);
-                    bandera = 1;
+            int cont = 1;
+            while (lista[cont]!=NULL){
+                if(lista[cont]!=NULL){
+                    SplitIgual(lista[cont]);
+                    if(strcasecmp(sublista[0],"-path")==0){
+                        ruta=malloc(200);
+                        strcpy(ruta,sublista[1]);
+                        if(ruta[strlen(ruta)-1]!='"'){
+                            strcat(ruta," ");
+                            strcat(ruta,lista[cont+1]);
+                        }
+                        SplitComilla(ruta);
+                        strcpy(ruta,sinComillas);
+                        printf("ESTO HAY EN PATH: %s\n",ruta);
+                        bandera = 1;
+                    }
+                    else{
+                        printf("SE ESPERABA -PATH \n");
+                        bandera=0;
+                    }
                 }
-                else{
-                    printf("SE ESPERABA -PATH \n");
-                    bandera=0;
+                if(lista[cont]!=NULL){
+                    SplitIgual(lista[cont]);
+                    if(strcasecmp(sublista[0],"-name")==0){
+                        nombre=malloc(50);
+                        strcpy(nombre,sublista[1]);
+                        if(name[strlen(name)-1]!='"'){
+                            strcat(name," ");
+                            strcat(name,lista[cont+1]);
+                        }
+                        SplitComilla(nombre);
+                        strcpy(nombre,sinComillas);
+                        printf("ESTO HAY EN PATH: %s\n",nombre);
+                    }
+                    else{
+                        printf("SE ESPERABA -NAME \n");
+                        bandera=0;
+                    }
                 }
-            }
-            if(lista[2]!=NULL){
-                SplitIgual(lista[2]);
-                if(strcasecmp(sublista[0],"-name")==0){
-                    nombre=malloc(50);
-                    strcpy(nombre,sublista[1]);
-                    SplitComilla(nombre);
-                    strcpy(nombre,sinComillas);
-                    printf("ESTO HAY EN PATH: %s\n",nombre);
-                }
-                else{
-                    printf("SE ESPERABA -NAME \n");
-                    bandera=0;
-                }
+                cont = cont +1;
             }
             if(bandera==1){
                 Montar(ruta,nombre);
@@ -1258,6 +1312,10 @@ void Funcionalidad(char* token){
                 if(strcasecmp(sublista[0],"-path")==0){
                     ruta=malloc(200);
                     strcpy(ruta,sublista[1]);
+                    if(ruta[strlen(ruta)-1]!='"'){
+                        strcat(ruta," ");
+                        strcat(ruta,lista[cont+1]);
+                    }
                     SplitComilla(ruta);
                     strcpy(ruta,sinComillas);
                     printf("ESTO HAY EN PATH: %s\n",ruta);

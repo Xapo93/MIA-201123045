@@ -1,7 +1,8 @@
 # depslib dependency file v1.0
-1471049266 source:/home/wicho/MIA-201123045/Proyecto_archivos/main.c
+1471067571 source:/home/wicho/MIA-201123045/Proyecto_archivos/main.c
 	<stdio.h>
 	<string.h>
 	<stdlib.h>
 	<time.h>
+	<sys/stat.h>
 
