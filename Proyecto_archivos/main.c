@@ -118,7 +118,7 @@ void SplitComilla(char* entry){
     {
         sinComillas=malloc(200);
         strcpy(sinComillas,token);
-        printf("ESTO HAY EN SIN %d\n",sinComillas);
+        printf("ESTO HAY EN SIN %s\n",sinComillas);
         contador=contador+1;
         token = strtok(NULL, s);
     }
@@ -651,6 +651,9 @@ void Desmontar(char *id){
 
 void Reportes(char *name,char *ruta, char *id){
     FILE *reporte = fopen(ruta,"w+");
+    fprintf(reporte,"digraph G {\n");
+    fprintf(reporte,"   node [shape=plaintext]\n");
+    fprintf(reporte,"   a [label=<<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
     if(reporte!=NULL){
         int con = 0;
         int aux = 0;
@@ -666,141 +669,95 @@ void Reportes(char *name,char *ruta, char *id){
             con=con+1;
         }
         if(aux==0){
-            printf("no se encontro la particion \n");
-            if(strcasecmp(name,"disk")==0){
-                FILE *reporte1 = ("/home/wicho/pruebas/repdisco","w+");
-                FILE *disco = fopen(ruta,"r+");
-                if(disco!=NULL){
-                    if(strcasecmp(name,"disk")==0){
-                        struct MBR discoEditar;
-                        fread(&discoEditar, sizeof(discoEditar),1,disco);
-                        fprintf(reporte1,"MBR %s \n",Pmontadas[con].path);
-                        fprintf(reporte1,"MBR_tamaño: %i\n",discoEditar.tam);
-                        struct tm *tlocal = localtime(&discoEditar.fecha);
-                        char fecha[60];
-                        strftime(fecha,60,"%d/%m/%y %H:%M:%S",tlocal);
-                        fprintf(reporte1,"MBR_fecha: %s\n",fecha);
-                        fprintf(reporte1,"MBR_signature: %i\n",discoEditar.signature);
-                        int x = 0;
-                        while(discoEditar.particiones[x].status=='v'&& x<4){
-                            fprintf(reporte1,"part_status_%i: %c\n",x,discoEditar.particiones[x].status);
-                            fprintf(reporte1,"part_type_%i: %c\n",x,discoEditar.particiones[x].type);
-                            fprintf(reporte1,"part_fit_%i: %c\n",x,discoEditar.particiones[x].fit);
-                            fprintf(reporte1,"part_start_%i: %i\n",x,discoEditar.particiones[x].start);
-                            fprintf(reporte1,"part_size_%i: %i\n",x,discoEditar.particiones[x].size);
-                            fprintf(reporte1,"part_name_%i: %s\n",x,discoEditar.particiones[x].name);
-                            x=x+1;
-                        }
-                        int y = 0;
-                        int a = 0;
-                        while(y<4){
-                            if(discoEditar.particiones[y].type=='e'){
-                                a=y;
-                                y = 4;
-
-                            }
-                            y=y+1;
-                        }
-                        if(y==5){
-                            struct EBR aux;
-                            fseek(disco,discoEditar.particiones[a].start,SEEK_SET);
-                            fread(&aux,sizeof(aux),1,disco);
-                            int z= 0;
-                            while(z != 1){
-                                if(aux.next==-1){
-                                   fprintf(reporte1,"EBR \n");
-                                   fprintf(reporte1,"part_status: %c \n",aux.status);
-                                   fprintf(reporte1,"part_fit: %c \n",aux.fit);
-                                   fprintf(reporte1,"part_start: %i \n",aux.start);
-                                   fprintf(reporte1,"part_size: %i \n",aux.size);
-                                   fprintf(reporte1,"part_next: %i \n",aux.next);
-                                   fprintf(reporte1,"part_name: %s \n",aux.name);
-                                   z=1;
-                                }else{
-                                    fprintf(reporte1,"EBR \n");
-                                    fprintf(reporte1,"part_status: %c \n",aux.status);
-                                    fprintf(reporte1,"part_fit: %c \n",aux.fit);
-                                    fprintf(reporte1,"part_start: %i \n",aux.start);
-                                    fprintf(reporte1,"part_size: %i \n",aux.size);
-                                    fprintf(reporte1,"part_next: %i \n",aux.next);
-                                    fprintf(reporte1,"part_name: %s \n",aux.name);
-                                    fseek(disco,aux.next,SEEK_SET);
-                                    fread(&aux,sizeof(aux),1,disco);
-                                }
-                            }
-                        }
-                }
-                fclose(disco);
-                fclose(reporte1);
-             }
-            }
+            printf("la particion no existe \n");
         }else{
-           FILE *disco = fopen(Pmontadas[con].path,"r+");
-           if(disco!=NULL){
-               if(strcasecmp(name,"mbr")==0){
-                   struct MBR discoEditar;
-                   fread(&discoEditar, sizeof(discoEditar),1,disco);
-                   fprintf(reporte,"MBR %s \n",Pmontadas[con].path);
-                   fprintf(reporte,"MBR_tamaño: %i\n",discoEditar.tam);
-                   struct tm *tlocal = localtime(&discoEditar.fecha);
-                   char fecha[60];
-                   strftime(fecha,60,"%d/%m/%y %H:%M:%S",tlocal);
-                   fprintf(reporte,"MBR_fecha: %s\n",fecha);
-                   fprintf(reporte,"MBR_signature: %i\n",discoEditar.signature);
-                   int x = 0;
-                   while(discoEditar.particiones[x].status=='v'&& x<4){
-                       fprintf(reporte,"part_status_%i: %c\n",x,discoEditar.particiones[x].status);
-                       fprintf(reporte,"part_type_%i: %c\n",x,discoEditar.particiones[x].type);
-                       fprintf(reporte,"part_fit_%i: %c\n",x,discoEditar.particiones[x].fit);
-                       fprintf(reporte,"part_start_%i: %i\n",x,discoEditar.particiones[x].start);
-                       fprintf(reporte,"part_size_%i: %i\n",x,discoEditar.particiones[x].size);
-                       fprintf(reporte,"part_name_%i: %s\n",x,discoEditar.particiones[x].name);
-                       x=x+1;
-                   }
-                   int y = 0;
-                   int a = 0;
-                   while(y<4){
-                       if(discoEditar.particiones[y].type=='e'){
-                           a=y;
-                           y = 4;
-
+            if(strcasecmp(name,"mbr")==0){
+               FILE *disco = fopen(Pmontadas[con].path,"r+");
+               if(disco!=NULL){
+                   if(strcasecmp(name,"mbr")==0){
+                       struct MBR discoEditar;
+                       fread(&discoEditar, sizeof(discoEditar),1,disco);
+                       fprintf(reporte,"       <tr><td><b>Reporte MBR</b></td></tr>\n");
+                       fprintf(reporte,"       <tr><td>MBR</td><td> %s </td></tr>\n",Pmontadas[con].path);
+                       fprintf(reporte,"       <tr><td>MBR tamaño</td><td> %i </td></tr>\n",discoEditar.tam);
+                       struct tm *tlocal = localtime(&discoEditar.fecha);
+                       char fecha[60];
+                       strftime(fecha,60,"%d/%m/%y %H:%M:%S",tlocal);
+                       fprintf(reporte,"       <tr><td>MBR fecha</td><td> %s </td></tr>\n",fecha);
+                       fprintf(reporte,"       <tr><td>MBR signature</td><td> %i </td></tr>\n",discoEditar.signature);
+                       int x = 0;
+                       while(discoEditar.particiones[x].status=='v'&& x<4){
+                           fprintf(reporte,"       <tr><td>part status %i</td><td> %c </td></tr>\n",x,discoEditar.particiones[x].status);
+                           fprintf(reporte,"       <tr><td>part type %i</td><td> %c </td></tr>\n",x,discoEditar.particiones[x].type);
+                           fprintf(reporte,"       <tr><td>part fit %i</td><td> %c </td></tr>\n",x,discoEditar.particiones[x].fit);
+                           fprintf(reporte,"       <tr><td>part start %i</td><td> %i </td></tr>\n",x,discoEditar.particiones[x].start);
+                           fprintf(reporte,"       <tr><td>part size %i</td><td> %i </td></tr>\n",x,discoEditar.particiones[x].size);
+                           fprintf(reporte,"       <tr><td>part name %i</td><td> %s </td></tr>\n",x,discoEditar.particiones[x].name);
+                           x=x+1;
                        }
-                       y=y+1;
-                   }
-                   if(y==5){
-                       struct EBR aux;
-                       fseek(disco,discoEditar.particiones[a].start,SEEK_SET);
-                       fread(&aux,sizeof(aux),1,disco);
-                       int z= 0;
-                       while(z != 1){
-                           if(aux.next==-1){
-                              fprintf(reporte,"EBR \n");
-                              fprintf(reporte,"part_status: %c \n",aux.status);
-                              fprintf(reporte,"part_fit: %c \n",aux.fit);
-                              fprintf(reporte,"part_start: %i \n",aux.start);
-                              fprintf(reporte,"part_size: %i \n",aux.size);
-                              fprintf(reporte,"part_next: %i \n",aux.next);
-                              fprintf(reporte,"part_name: %s \n",aux.name);
-                              z=1;
-                           }else{
-                               fprintf(reporte,"EBR \n");
-                               fprintf(reporte,"part_status: %c \n",aux.status);
-                               fprintf(reporte,"part_fit: %c \n",aux.fit);
-                               fprintf(reporte,"part_start: %i \n",aux.start);
-                               fprintf(reporte,"part_size: %i \n",aux.size);
-                               fprintf(reporte,"part_next: %i \n",aux.next);
-                               fprintf(reporte,"part_name: %s \n",aux.name);
-                               fseek(disco,aux.next,SEEK_SET);
-                               fread(&aux,sizeof(aux),1,disco);
+                       int y = 0;
+                       int a = 0;
+                       while(y<4){
+                           if(discoEditar.particiones[y].type=='e'){
+                               a=y;
+                               y = 4;
+
+                           }
+                           y=y+1;
+                       }
+                       if(y==5){
+                           struct EBR aux;
+                           fseek(disco,discoEditar.particiones[a].start,SEEK_SET);
+                           fread(&aux,sizeof(aux),1,disco);
+                           int z= 0;
+                           while(z != 1){
+                               if(aux.next==-1){
+                                  fprintf(reporte,"         <tr><td><b>Reporte EBR</b></td></tr>\n");
+                                  fprintf(reporte,"         <tr><td>part status </td><td> %c </td></tr>\n",aux.status);
+                                  fprintf(reporte,"         <tr><td>part fit </td><td> %c </td></tr>\n",aux.fit);
+                                  fprintf(reporte,"         <tr><td>part start </td><td> %i </td></tr>\n",aux.start);
+                                  fprintf(reporte,"         <tr><td>part size </td><td> %i </td></tr>\n",aux.size);
+                                  fprintf(reporte,"         <tr><td>part next </td><td> %i </td></tr>\n",aux.next);
+                                  fprintf(reporte,"         <tr><td>part name </td><td> %s </td></tr>\n",aux.name);
+                                  z=1;
+                               }else{
+                                   fprintf(reporte,"         <tr><td><b>Reporte EBR</b></td></tr>\n");
+                                   fprintf(reporte,"         <tr><td>part status </td><td> %c </td></tr>\n",aux.status);
+                                   fprintf(reporte,"         <tr><td>part fit </td><td> %c </td></tr>\n",aux.fit);
+                                   fprintf(reporte,"         <tr><td>part start </td><td> %i </td></tr>\n",aux.start);
+                                   fprintf(reporte,"         <tr><td>part size </td><td> %i </td></tr>\n",aux.size);
+                                   fprintf(reporte,"         <tr><td>part next </td><td> %i </td></tr>\n",aux.next);
+                                   fprintf(reporte,"         <tr><td>part name </td><td> %s </td></tr>\n",aux.name);
+                                   fseek(disco,aux.next,SEEK_SET);
+                                   fread(&aux,sizeof(aux),1,disco);
+                               }
                            }
                        }
                    }
                }
-           }
-           fclose(disco);
+               fprintf(reporte,"   </table>>];\n");
+               fprintf(reporte," }\n");
+               fclose(disco);
+            }
         }
+        fclose(reporte);
     }
-    fclose(reporte);
+    char comand[200];
+    strcpy(comand,"");
+    strcat(comand,"dot ");
+    strcat(comand,ruta);
+    strcat(comand," -o ");
+    strcat(comand,ruta);
+    strcat(comand,".png -Tpng -Gcharset=utf8");
+    system(comand);
+}
+
+void ListarMont(){
+    int cont = 0;
+    while(Pmontadas[cont].letra!='k'){
+        printf("id: %s name: %s path: %s \n",Pmontadas[cont].id,Pmontadas[cont].name,Pmontadas[cont].path);
+        cont = cont +1;
+    }
 }
 
 void Funcionalidad(char* token){
@@ -1120,9 +1077,10 @@ void Funcionalidad(char* token){
 
 //IF DEL COMANDO MOUNT---------------------------------------------------------------------------------------
         else if (strcasecmp(token, "mount")==0){
-            printf("Entro mount");
+            printf("Entro mount \n");
             char *nombre;
             char *ruta;
+            bandera = 2;
             if(lista[1]!=NULL){
                 SplitIgual(lista[1]);
                 if(strcasecmp(sublista[0],"-path")==0){
@@ -1131,6 +1089,7 @@ void Funcionalidad(char* token){
                     SplitComilla(ruta);
                     strcpy(ruta,sinComillas);
                     printf("ESTO HAY EN PATH: %s\n",ruta);
+                    bandera = 1;
                 }
                 else{
                     printf("SE ESPERABA -PATH \n");
@@ -1153,6 +1112,12 @@ void Funcionalidad(char* token){
             }
             if(bandera==1){
                 Montar(ruta,nombre);
+            }
+            if(bandera == 2){
+                ListarMont();
+            }
+            if(bandera == 0){
+                printf("Faltan Parametros \n");
             }
         }
 
@@ -1190,8 +1155,11 @@ void Funcionalidad(char* token){
                 SplitIgual(lista[cont]);
                 if(strcasecmp(sublista[0],"-name")==0){
                     name=malloc(10);
-                    if(strcasecmp(sublista[1],"mbr")==0 || strcasecmp(sublista[1],"disk")==0){
+                    if(strcasecmp(sublista[1],"\"mbr\"")==0 || strcasecmp(sublista[1],"\"disk\"")==0){
                         strcpy(name,sublista[1]);
+                        SplitComilla(name);
+                        strcpy(name,sinComillas);
+                        printf("ESTO HAY EN NAME: %s\n",name);
                     }
                     else{
                         bandera=0;
