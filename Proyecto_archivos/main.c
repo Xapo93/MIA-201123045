@@ -609,10 +609,10 @@ void Montar(char *ruta,char *name){
         }else{
             printf("particion encontrada \n");
         }
+        fclose(disco);
     }else{
         printf("disco no encontrado \n");
     }
-    fclose(disco);
     if(encontrado==1){
         struct particionMontada nuevo;
         strcpy(nuevo.name,name);
@@ -1213,42 +1213,30 @@ void Funcionalidad(char* token){
             bandera = 2;
             int cont = 1;
             while (lista[cont]!=NULL){
-                if(lista[cont]!=NULL){
-                    SplitIgual(lista[cont]);
-                    if(strcasecmp(sublista[0],"-path")==0){
-                        ruta=malloc(200);
-                        strcpy(ruta,sublista[1]);
-                        if(ruta[strlen(ruta)-1]!='"'){
-                            strcat(ruta," ");
-                            strcat(ruta,lista[cont+1]);
-                        }
-                        SplitComilla(ruta);
-                        strcpy(ruta,sinComillas);
-                        printf("ESTO HAY EN PATH: %s\n",ruta);
-                        bandera = 1;
+                SplitIgual(lista[cont]);
+                if(strcasecmp(sublista[0],"-path")==0){
+                    ruta=malloc(200);
+                    strcpy(ruta,sublista[1]);
+                    if(ruta[strlen(ruta)-1]!='"'){
+                        strcat(ruta," ");
+                        strcat(ruta,lista[cont+1]);
                     }
-                    else{
-                        printf("SE ESPERABA -PATH \n");
-                        bandera=0;
-                    }
+                    SplitComilla(ruta);
+                    strcpy(ruta,sinComillas);
+                    printf("ESTO HAY EN PATH: %s\n",ruta);
+                    bandera = 1;
                 }
-                if(lista[cont]!=NULL){
-                    SplitIgual(lista[cont]);
-                    if(strcasecmp(sublista[0],"-name")==0){
-                        nombre=malloc(50);
-                        strcpy(nombre,sublista[1]);
-                        if(name[strlen(name)-1]!='"'){
-                            strcat(name," ");
-                            strcat(name,lista[cont+1]);
-                        }
-                        SplitComilla(nombre);
-                        strcpy(nombre,sinComillas);
-                        printf("ESTO HAY EN PATH: %s\n",nombre);
+                printf("ESTO HAY EN lista: %s\n",sublista[0]);
+                if(strcasecmp(sublista[0],"-name")==0){
+                    nombre=malloc(50);
+                    strcpy(nombre,sublista[1]);
+                    if(nombre[strlen(nombre)-1]!='"'){
+                        strcat(nombre," ");
+                        strcat(nombre,lista[cont+1]);
                     }
-                    else{
-                        printf("SE ESPERABA -NAME \n");
-                        bandera=0;
-                    }
+                    SplitComilla(nombre);
+                    strcpy(nombre,sinComillas);
+                    printf("ESTO HAY EN PATH: %s\n",nombre);
                 }
                 cont = cont +1;
             }
