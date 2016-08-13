@@ -651,9 +651,6 @@ void Desmontar(char *id){
 
 void Reportes(char *name,char *ruta, char *id){
     FILE *reporte = fopen(ruta,"w+");
-    fprintf(reporte,"digraph G {\n");
-    fprintf(reporte,"   node [shape=plaintext]\n");
-    fprintf(reporte,"   a [label=<<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
     if(reporte!=NULL){
         int con = 0;
         int aux = 0;
@@ -672,12 +669,15 @@ void Reportes(char *name,char *ruta, char *id){
             printf("la particion no existe \n");
         }else{
             if(strcasecmp(name,"mbr")==0){
+               fprintf(reporte,"digraph G {\n");
+               fprintf(reporte,"   node [shape=plaintext]\n");
+               fprintf(reporte,"   a [label=<<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
                FILE *disco = fopen(Pmontadas[con].path,"r+");
                if(disco!=NULL){
                    if(strcasecmp(name,"mbr")==0){
                        struct MBR discoEditar;
                        fread(&discoEditar, sizeof(discoEditar),1,disco);
-                       fprintf(reporte,"       <tr><td><b>Reporte MBR</b></td></tr>\n");
+                       fprintf(reporte,"       <tr><td colspan=\"2\"><b>Reporte MBR</b></td></tr>\n");
                        fprintf(reporte,"       <tr><td>MBR</td><td> %s </td></tr>\n",Pmontadas[con].path);
                        fprintf(reporte,"       <tr><td>MBR tamaño</td><td> %i </td></tr>\n",discoEditar.tam);
                        struct tm *tlocal = localtime(&discoEditar.fecha);
@@ -712,7 +712,7 @@ void Reportes(char *name,char *ruta, char *id){
                            int z= 0;
                            while(z != 1){
                                if(aux.next==-1){
-                                  fprintf(reporte,"         <tr><td><b>Reporte EBR</b></td></tr>\n");
+                                  fprintf(reporte,"         <tr><td colspan=\"2\"><b>Reporte EBR</b></td></tr>\n");
                                   fprintf(reporte,"         <tr><td>part status </td><td> %c </td></tr>\n",aux.status);
                                   fprintf(reporte,"         <tr><td>part fit </td><td> %c </td></tr>\n",aux.fit);
                                   fprintf(reporte,"         <tr><td>part start </td><td> %i </td></tr>\n",aux.start);
@@ -721,7 +721,7 @@ void Reportes(char *name,char *ruta, char *id){
                                   fprintf(reporte,"         <tr><td>part name </td><td> %s </td></tr>\n",aux.name);
                                   z=1;
                                }else{
-                                   fprintf(reporte,"         <tr><td><b>Reporte EBR</b></td></tr>\n");
+                                   fprintf(reporte,"         <tr><td colspan=\"2\"><b>Reporte EBR</b></td></tr>\n");
                                    fprintf(reporte,"         <tr><td>part status </td><td> %c </td></tr>\n",aux.status);
                                    fprintf(reporte,"         <tr><td>part fit </td><td> %c </td></tr>\n",aux.fit);
                                    fprintf(reporte,"         <tr><td>part start </td><td> %i </td></tr>\n",aux.start);
@@ -734,6 +734,94 @@ void Reportes(char *name,char *ruta, char *id){
                            }
                        }
                    }
+               }
+               fprintf(reporte,"   </table>>];\n");
+               fprintf(reporte," }\n");
+               fclose(disco);
+            }
+        }
+         if(strcasecmp(name,"disk")==0){
+               FILE *disco = fopen(Pmontadas[con].path,"r+");
+               fprintf(reporte,"digraph G {\n");
+               fprintf(reporte,"   node [shape=plaintext]\n");
+               fprintf(reporte,"   a [label=<<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">\n");
+               if(disco!=NULL){
+                   if(strcasecmp(name,"disk")==0){
+                       struct MBR discoEditar;
+                       fread(&discoEditar, sizeof(discoEditar),1,disco);
+                       fprintf(reporte,"       <tr><td colspan=\"3\"><b>MBR</b></td></tr>\n");
+                       if(discoEditar.particiones[0].start==sizeof(MBR)){
+                            if(discoEditar.particiones[0].type!='e'){
+                                fprintf(reporte,"       <tr><td colspan=\"3\"><b>primaria: %s</b></td></tr>\n",discoEditar.particiones[0].name);
+                            }else{
+                                fprintf(reporte,"       <tr><td rowspan=\"10\"><b>Extendida: %s</b></td></tr>\n",discoEditar.particiones[0].name);
+                                struct EBR aux;
+                                fseek(disco,discoEditar.particiones[0].start,SEEK_SET);
+                                fread(&aux,sizeof(aux),1,disco);
+                                int z= 0;
+                                while(z != 1){
+                                    if(aux.next==-1){
+                                       fprintf(reporte,"         <tr><td colspan=\"2\"><b>libre</b></td></tr>\n");
+                                       z=1;
+                                    }else{
+                                        fprintf(reporte,"         <tr><td colspan=\"2\"><b>EBR</b></td></tr>\n");
+                                        if(aux.size!=0){
+                                            if(aux.start==discoEditar.particiones[0].start+sizeof(EBR)){
+                                                fprintf(reporte,"         <tr><td colspan=\"2\"><b>logica</b></td></tr>\n");
+                                            }else{
+                                                fprintf(reporte,"         <tr><td colspan=\"2\"><b>libre</b></td></tr>\n");
+                                                fprintf(reporte,"         <tr><td colspan=\"2\"><b>logica</b></td></tr>\n");
+                                            }
+                                            fprintf(reporte,"         <tr><td colspan=\"2\"><b>libre</b></td></tr>\n");
+                                        }
+
+                                        fseek(disco,aux.next,SEEK_SET);
+                                        fread(&aux,sizeof(aux),1,disco);
+                                    }
+                                }
+                            }
+                       }else{
+                            fprintf(reporte,"       <tr><td colspan=\"3\"><b>libre</b></td></tr>\n");
+                            fprintf(reporte,"       <tr><td colspan=\"3\"><b>primaria: %s</b></td></tr>\n",discoEditar.particiones[0].name);
+                       }
+                       int x = 1;
+                       while(discoEditar.particiones[x].status=='v'&& x<4){
+                           if(discoEditar.particiones[x].start==discoEditar.particiones[x-1].start+discoEditar.particiones[x-1].size){
+                                if(discoEditar.particiones[x].type!='e'){
+                                    fprintf(reporte,"       <tr><td colspan=\"3\"><b>primaria: %s</b></td></tr>\n",discoEditar.particiones[x].name);
+                                }else{
+                                    fprintf(reporte,"       <tr><td rowspan=\"10\"><b>Extendida: %s</b></td></tr>\n",discoEditar.particiones[x].name);
+                                    struct EBR aux;
+                                    fseek(disco,discoEditar.particiones[x].start,SEEK_SET);
+                                    fread(&aux,sizeof(aux),1,disco);
+                                    int z= 0;
+                                    while(z != 1){
+                                        if(aux.next==-1){
+                                           fprintf(reporte,"         <tr><td colspan=\"2\"><b>libre</b></td></tr>\n");
+                                           z=1;
+                                        }else{
+                                            fprintf(reporte,"         <tr><td colspan=\"2\"><b>EBR</b></td></tr>\n");
+                                            if(aux.size!=0){
+                                                if(aux.start==discoEditar.particiones[x].start+sizeof(EBR)){
+                                                    fprintf(reporte,"         <tr><td colspan=\"2\"><b>logica</b></td></tr>\n");
+                                                }else{
+                                                    fprintf(reporte,"         <tr><td rowspan=\"2\"><b>libre</b></td></tr>\n");
+                                                    fprintf(reporte,"         <tr><td colspan=\"2\"><b>logica</b></td></tr>\n");
+                                                }
+                                                fprintf(reporte,"         <tr><td colspan=\"2\"><b>libre</b></td></tr>\n");
+                                            }
+
+                                            fseek(disco,aux.next,SEEK_SET);
+                                            fread(&aux,sizeof(aux),1,disco);
+                                        }
+                                    }
+                                }
+                           }else{
+                                fprintf(reporte,"       <tr><td colspan=\"3\"><b>libre</b></td></tr>\n");
+                                fprintf(reporte,"       <tr><td colspan=\"3\"><b>primaria: %s</b></td></tr>\n",discoEditar.particiones[x].name);
+                           }
+                           x=x+1;
+                       }
                }
                fprintf(reporte,"   </table>>];\n");
                fprintf(reporte," }\n");
